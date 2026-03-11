@@ -8,6 +8,8 @@ using Microsoft.IdentityModel.Tokens;
 
 var builder = WebApplication.CreateBuilder(args);
 
+builder.Services.AddControllers();
+
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection")));
 
@@ -47,6 +49,8 @@ await app.SeedUsersAndRolesAsync();
 
 app.UseAuthentication(); //Middleware för att kolla om requesten har en giltig JWT token och i så fall sätta HttpContext.User med rätt claims
 app.UseAuthorization(); //Middleware för att kolla om användaren har rätt behörighet att nå en endpoint, baserat på [Authorize] attributet på endpointen
+
+app.MapControllers();
 
 // POST /login
 app.MapPost("/login", async (LoginRequest request, UserManager<IdentityUser> userManager) =>

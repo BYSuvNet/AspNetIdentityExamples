@@ -26,3 +26,19 @@ Authorization: Bearer <token-här>
 ### Admin only!
 GET http://localhost:5190/admin
 Authorization: Bearer <token här!>
+
+###
+
+POST http://localhost:5190/api/things
+Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9uYW1lIjoidXNlciIsImh0dHA6Ly9zY2hlbWFzLnhtbHNvYXAub3JnL3dzLzIwMDUvMDUvaWRlbnRpdHkvY2xhaW1zL25hbWVpZGVudGlmaWVyIjoiMTlhMWRkNmYtZmUyNS00NGJjLTkyNDEtZjBjZjk0ZTk4MGI5IiwiZXhwIjoxNzczMjcyNTMzLCJpc3MiOiJXZWJBcGlJZGVudGl0eUpXVEF1dGgiLCJhdWQiOiJXZWJBcGlJZGVudGl0eUpXVEF1dGgifQ.d_py7uM6C8YGeVwERbTXqApfkb-U72fPbrdyxRB0mqY
+
+{
+  "name": "My First Thing",
+  "description": "This is a description of my first thing."
+}
+
+### Hämta alla saker
+GET http://localhost:5190/api/things
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9uYW1lIjoidXNlciIsImh0dHA6Ly9zY2hlbWFzLnhtbHNvYXAub3JnL3dzLzIwMDUvMDUvaWRlbnRpdHkvY2xhaW1zL25hbWVpZGVudGlmaWVyIjoiMTlhMWRkNmYtZmUyNS00NGJjLTkyNDEtZjBjZjk0ZTk4MGI5IiwiZXhwIjoxNzczMjcyNTMzLCJpc3MiOiJXZWJBcGlJZGVudGl0eUpXVEF1dGgiLCJhdWQiOiJXZWJBcGlJZGVudGl0eUpXVEF1dGgifQ.d_py7uM6C8YGeVwERbTXqApfkb-U72fPbrdyxRB0mqY
+
