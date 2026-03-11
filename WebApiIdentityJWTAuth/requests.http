@@ -1,0 +1,28 @@
+### Publik endppoint
+GET http://localhost:5190/public
+
+### Logga in som användare
+POST http://localhost:5190/login
+Content-Type: application/json
+
+{
+  "username": "user",
+  "password": "Password123!"
+}
+
+### Logga in admin
+POST http://localhost:5190/login
+Content-Type: application/json
+
+{
+  "username": "admin",
+  "password": "Password123!"
+}
+
+### Bara för inloggade användare (använd token från login response)
+GET http://localhost:5190/protected
+Authorization: Bearer <token-här>
+
+### Admin only!
+GET http://localhost:5190/admin
+Authorization: Bearer <token här!>
