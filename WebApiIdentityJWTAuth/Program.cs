@@ -3,7 +3,6 @@ using System.Security.Claims;
 using System.Text;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 
@@ -16,16 +15,17 @@ builder.Services.AddIdentity<IdentityUser, IdentityRole>()
     .AddEntityFrameworkStores<AppDbContext>();
 
 // JWT Authentication
-var jwtKey = builder.Configuration["Jwt:Key"]!;
-var jwtIssuer = builder.Configuration["Jwt:Issuer"]!;
-var jwtAudience = builder.Configuration["Jwt:Audience"]!;
+string? jwtKey = builder.Configuration["Jwt:Key"]!; //för att signa token, måste vara minst 16 tecken
+string? jwtIssuer = builder.Configuration["Jwt:Issuer"]; //för att validera token, måste matcha det som användes vid signering
+string? jwtAudience = builder.Configuration["Jwt:Audience"]; // för att validera token, måste matcha det som användes vid signering
 
+// Ställ in att använda JWT Bearer som autentiseringsmetod
 builder.Services.AddAuthentication(options =>
 {
     options.DefaultAuthenticateScheme = "Bearer";
     options.DefaultChallengeScheme = "Bearer";
 })
-.AddJwtBearer("Bearer", options =>
+.AddJwtBearer("Bearer", options => // AddJtwBearer lägger till en autentiseringshandler som hanterar JWT tokens
 {
     options.TokenValidationParameters = new TokenValidationParameters
     {
@@ -39,43 +39,20 @@ builder.Services.AddAuthentication(options =>
     };
 });
 
-builder.Services.AddAuthorization();
+builder.Services.AddAuthorization(); //behövs för att kunna använda [Authorize] på endpoints
 
 var app = builder.Build();
 
-// Seed users
-using (var scope = app.Services.CreateScope())
-{
-    var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-    db.Database.Migrate();
+await app.SeedUsersAndRolesAsync();
 
-    var userManager = scope.ServiceProvider.GetRequiredService<UserManager<IdentityUser>>();
-    var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
-
-    if (!await roleManager.RoleExistsAsync("Admin"))
-        await roleManager.CreateAsync(new IdentityRole("Admin"));
-
-    if (await userManager.FindByNameAsync("user") == null)
-    {
-        var user = new IdentityUser { UserName = "user", Email = "user@example.com" };
-        await userManager.CreateAsync(user, "Password123!");
-    }
-
-    if (await userManager.FindByNameAsync("admin") == null)
-    {
-        var admin = new IdentityUser { UserName = "admin", Email = "admin@example.com" };
-        await userManager.CreateAsync(admin, "Password123!");
-        await userManager.AddToRoleAsync(admin, "Admin");
-    }
-}
-
-app.UseAuthentication();
-app.UseAuthorization();
+app.UseAuthentication(); //Middleware för att kolla om requesten har en giltig JWT token och i så fall sätta HttpContext.User med rätt claims
+app.UseAuthorization(); //Middleware för att kolla om användaren har rätt behörighet att nå en endpoint, baserat på [Authorize] attributet på endpointen
 
 // POST /login
 app.MapPost("/login", async (LoginRequest request, UserManager<IdentityUser> userManager) =>
 {
     var user = await userManager.FindByNameAsync(request.Username);
+
     if (user == null || !await userManager.CheckPasswordAsync(user, request.Password))
         return Results.Unauthorized();
 
@@ -86,6 +63,7 @@ app.MapPost("/login", async (LoginRequest request, UserManager<IdentityUser> use
         new(ClaimTypes.Name, user.UserName!),
         new(ClaimTypes.NameIdentifier, user.Id)
     };
+
     foreach (var role in roles)
         claims.Add(new Claim(ClaimTypes.Role, role));
 
@@ -102,22 +80,10 @@ app.MapPost("/login", async (LoginRequest request, UserManager<IdentityUser> use
     return Results.Ok(new { token = new JwtSecurityTokenHandler().WriteToken(token) });
 });
 
-// GET /public - open for all
 app.MapGet("/public", () => "public");
 
-// GET /protected - logged in users only
 app.MapGet("/protected", [Authorize] () => "logged in");
 
-// GET /admin - admin role only
 app.MapGet("/admin", [Authorize(Roles = "Admin")] () => "admin only");
 
 app.Run();
-
-// ---- Supporting types ----
-
-public record LoginRequest(string Username, string Password);
-
-public class AppDbContext : IdentityDbContext<IdentityUser>
-{
-    public AppDbContext(DbContextOptions<AppDbContext> options) : base(options) { }
-}
