@@ -60,14 +60,13 @@ app.MapPost("/login", async (LoginRequest request, UserManager<IdentityUser> use
     if (user == null || !await userManager.CheckPasswordAsync(user, request.Password))
         return Results.Unauthorized();
 
-    var roles = await userManager.GetRolesAsync(user);
-
     var claims = new List<Claim>
     {
         new(ClaimTypes.Name, user.UserName!),
         new(ClaimTypes.NameIdentifier, user.Id)
     };
 
+    var roles = await userManager.GetRolesAsync(user);
     foreach (var role in roles)
         claims.Add(new Claim(ClaimTypes.Role, role));
 
